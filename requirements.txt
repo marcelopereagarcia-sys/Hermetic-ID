@@ -1,0 +1,25 @@
+# Visión por computador y análisis forense
+numpy>=1.24.0
+opencv-python>=4.8.0
+pillow>=10.0.0
+scikit-image>=0.21.0
+matplotlib>=3.7.0
+
+# OCR local y procesamiento de texto
+easyocr>=1.7.0
+
+# Modelos y validación de esquemas
+pydantic>=2.0.0
+mrz>=0.5.1  # Referencia para pruebas cruzadas de ICAO 9303
+
+# Interfaz interactiva local (Compliance: ejecuta en localhost)
+gradio>=6.0.0
+
+# API REST headless (src/api)
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-multipart>=0.0.9
+
+# Testing y calidad
+pytest>=7.4.0
+pytest-cov>=4.1.0

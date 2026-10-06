@@ -1,0 +1,41 @@
+# Entornos y control de versiones
+.venv/
+venv/
+env/
+.git/
+.github/
+.idea/
+.vscode/
+
+# Cachés
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Imágenes y documentos locales: nunca deben acabar dentro de la imagen (pueden ser datos reales)
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.tiff
+*.bmp
+*.heic
+*.pdf
+*.gif
+*.heif
+*.avif
+
+# Datos privados y documentación interna
+private/
+informes/
+reports/
+.env
+.env.*
+
+# Temporales
+tmp/
+temp/
+scratch/
+*.log

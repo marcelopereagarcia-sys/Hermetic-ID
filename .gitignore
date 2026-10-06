@@ -1,0 +1,68 @@
+# Entorno virtual y Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Pruebas y cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs y temporales
+*.log
+tmp/
+temp/
+scratch/
+.gradio/
+
+# IDEs y SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ─── DATOS PRIVADOS: nunca deben llegar al repositorio ───────────────────────
+# Carpeta local para documentos reales, notas personales y borradores
+private/
+
+# Imágenes y documentos escaneados (DNI, NIE, TIE, pasaportes...). Sin excepciones:
+# las muestras de los tests se generan en código (tests/fixtures/synthetic_generator.py).
+*.jpg
+*.jpeg
+*.jpe
+*.jfif
+*.png
+*.webp
+*.gif
+*.tif
+*.tiff
+*.bmp
+*.heic
+*.heif
+*.avif
+*.pdf
+*.raw
+*.dng
+
+# Informes exportados por la herramienta (contienen nombre, número y fechas del titular)
+informes/
+reports/
+*_informe*.json
+*_report*.json
+
+# Secretos y configuración local
+.env
+.env.*
+*.pem
+*.key
+
+# Metadatos de empaquetado
+*.egg-info/
+build/
+dist/
