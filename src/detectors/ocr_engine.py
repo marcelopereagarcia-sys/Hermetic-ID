@@ -59,6 +59,73 @@ class CrossVerificationResult:
     summary: str = ""
 
 
+# Palabras que forman las etiquetas impresas del anverso (DNI 3.0/4.0 y TIE, bilingües ES/EN).
+# Una línea compuesta solo por estas palabras es una etiqueta, nunca un valor.
+FRONT_LABEL_WORDS = {
+    "PRIMER", "SEGUNDO", "APELLIDO", "APELLIDOS", "SURNAME", "SURNAMES", "NOMBRE", "NOMBRES", "NAME", "NAMES",
+    "GIVEN", "SEXO", "SEX", "NACIONALIDAD", "NATIONALITY", "FECHA", "DE", "DEL", "NACIMIENTO", "DATE", "OF",
+    "BIRTH", "VALIDO", "VALIDEZ", "HASTA", "VALID", "UNTIL", "EXPIRY", "EMISION", "EXPEDICION", "ISSUE", "NUM",
+    "SOPORT", "SOPORTE", "IDESP", "DNI", "NIE", "CAN", "DOCUMENTO", "NACIONAL", "IDENTIDAD", "REINO", "ESPANA",
+    "PERMISO", "RESIDENCIA", "TIPO", "TYPE", "TARJETA", "DOMICILIO", "LUGAR", "OBSERVACIONES", "ESP",
+}
+# Etiquetas que introducen apellidos o nombre: lo que sigue a la etiqueta en la misma línea, o las
+# líneas siguientes hasta la próxima etiqueta, son el valor
+SURNAME_LABELS = ("APELLIDO", "APELLIDOS", "SURNAME", "SURNAMES")
+GIVEN_NAME_LABELS = ("NOMBRE", "NOMBRES", "NAME", "NAMES")
+
+
+def _is_label_line(tokens: List[str]) -> bool:
+    return bool(tokens) and all(t in FRONT_LABEL_WORDS for t in tokens)
+
+
+def _is_name_value(tokens: List[str]) -> bool:
+    """Valor plausible de nombre: solo letras, al menos una palabra de 2+ letras y ninguna etiqueta."""
+    return bool(tokens) and any(len(t) >= 2 for t in tokens) and not any(t in FRONT_LABEL_WORDS for t in tokens)
+
+
+def extract_labeled_names(lines: List[str]) -> Tuple[Optional[str], Optional[str]]:
+    """Extrae apellidos y nombre del anverso a partir de sus etiquetas impresas.
+
+    Soporta 'PRIMER APELLIDO' + 'SEGUNDO APELLIDO' (DNI 3.0) y 'APELLIDOS / SURNAMES' (DNI 4.0, TIE),
+    con el valor en la misma línea que la etiqueta o en las líneas siguientes. Cualquier línea con
+    dígitos o con palabras de etiqueta corta el valor, para no arrastrar fechas ni otros campos.
+    """
+    surnames: List[str] = []
+    given: List[str] = []
+    target: Optional[List[str]] = None
+    budget = 0  # Nº máximo de líneas de valor tras una etiqueta
+
+    for raw in lines:
+        if any(c.isdigit() for c in raw):
+            target = None
+            continue
+        tokens = normalize_name_tokens(raw)
+        if not tokens:
+            continue
+
+        if any(t in SURNAME_LABELS for t in tokens):
+            target, budget = surnames, 2
+        elif any(t in GIVEN_NAME_LABELS for t in tokens) and "APELLIDO" not in tokens:
+            target, budget = given, 1
+        elif not _is_label_line(tokens) and target is not None and budget > 0 and _is_name_value(tokens):
+            target.append(" ".join(tokens))
+            budget -= 1
+            continue
+        else:
+            # Etiqueta de otro campo (sexo, nacionalidad...) o valor ajeno: deja de recoger
+            if _is_label_line(tokens):
+                target = None
+            continue
+
+        # La línea es una etiqueta de nombre: el valor puede venir pegado a la etiqueta
+        inline = [t for t in tokens if t not in FRONT_LABEL_WORDS]
+        if inline and _is_name_value(inline):
+            target.append(" ".join(inline))
+            budget -= 1
+
+    return (" ".join(surnames) or None), (" ".join(given) or None)
+
+
 class MRZTextCleaner:
     """Corrector heurístico de errores comunes de OCR sobre tipografía OCR-B."""
 
@@ -198,6 +265,11 @@ def cross_verify_front_with_mrz(
             match_surname, detail = True, (
                 f"Coincidencia parcial: el anverso aporta '{front_joined}', la MRZ contiene '{mrz_joined}' "
                 "(solo se comparó el primer apellido)."
+            )
+        elif mrz_tokens and front_tokens[:len(mrz_tokens)] == mrz_tokens:
+            # El OCR del anverso arrastró texto tras los apellidos completos (p. ej. el nombre)
+            match_surname, detail = True, (
+                f"Apellidos coincidentes: el anverso empieza por los apellidos de la MRZ ('{mrz_joined}') y añade texto."
             )
         elif mrz_tokens and mrz_truncated and front_joined.replace(" ", "").startswith(mrz_joined.replace(" ", "")):
             match_surname, detail = True, "Apellidos coincidentes (MRZ truncada por longitud)."
@@ -491,6 +563,12 @@ class DocumentAutoDetector:
                 result.detected_surname = line.split(":", 1)[1].strip()
             elif "NOMBRE:" in line_up:
                 result.detected_given_names = line.split(":", 1)[1].strip()
+
+        # Documentos reales: etiqueta en una línea y valor debajo (DNI 3.0/4.0, TIE)
+        if not result.detected_surname or not result.detected_given_names:
+            surname, given_names = extract_labeled_names(result.raw_ocr_lines)
+            result.detected_surname = result.detected_surname or surname
+            result.detected_given_names = result.detected_given_names or given_names
 
         # Buscar fechas típicas (DD/MM/AAAA o DD MM AAAA). El orden de lectura del OCR no es fiable,
         # así que se asignan por valor: nacimiento < expedición < caducidad.

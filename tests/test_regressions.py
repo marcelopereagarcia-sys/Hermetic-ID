@@ -156,6 +156,52 @@ class TestCrossCheckNormalization:
         assert support.passed is False
 
 
+class TestFrontNameExtraction:
+    """Hueco detectado con una TIE real: el apellido del anverso no se extraía y no se cruzaba."""
+
+    @pytest.mark.parametrize("lines, surname, given", [
+        # DNI 3.0: un apellido por etiqueta
+        (["PRIMER APELLIDO", "GARCÍA", "SEGUNDO APELLIDO", "MUÑOZ", "NOMBRE", "CARMEN"], "GARCIA MUNOZ", "CARMEN"),
+        # DNI 4.0 / TIE: etiquetas bilingües y apellidos en una línea
+        (["APELLIDOS / SURNAMES", "GARCÍA MUÑOZ", "NOMBRE / NAME", "CARMEN"], "GARCIA MUNOZ", "CARMEN"),
+        # Apellidos partidos en dos líneas y fechas que no deben colarse
+        (["APELLIDOS", "GARCIA", "MUNOZ", "NOMBRE", "CARMEN", "FECHA DE NACIMIENTO", "01 01 1985"], "GARCIA MUNOZ", "CARMEN"),
+        # Valor pegado a la etiqueta en la misma línea
+        (["APELLIDOS GARCIA MUNOZ", "NOMBRE CARMEN"], "GARCIA MUNOZ", "CARMEN"),
+        # Otros campos entre medias: el sexo (1 letra) y la nacionalidad no son nombres
+        (["APELLIDOS", "GARCIA", "SEXO", "F", "NACIONALIDAD", "ESP", "NOMBRE", "CARMEN"], "GARCIA", "CARMEN"),
+    ])
+    def test_labeled_names(self, lines, surname, given):
+        from src.detectors.ocr_engine import extract_labeled_names
+        assert extract_labeled_names(lines) == (surname, given)
+
+    def test_front_ocr_detects_surname(self, fake_ocr):
+        fake_ocr(["DOCUMENTO NACIONAL DE IDENTIDAD", "APELLIDOS / SURNAMES", "GARCÍA MUÑOZ", "NOMBRE / NAME", "CARMEN", "12345678Z"])
+        result = DocumentAutoDetector.analyze_image_auto(BLANK)
+        assert result.detected_surname == "GARCIA MUNOZ"
+        assert result.detected_given_names == "CARMEN"
+
+    def test_altered_front_surname_is_now_detected(self, fake_ocr):
+        """Anverso con el segundo apellido cambiado y reverso intacto → rojo por el cruce de apellidos."""
+        lines = generate_synthetic_mrz_td1(personal_number="12345678Z", surname="GARCIA MUNOZ", given_names="CARMEN")
+        fake_ocr(["APELLIDOS / SURNAMES", "GARCÍA PÉREZ", "NOMBRE / NAME", "CARMEN", "12345678Z"])
+
+        _, _, _, _, _, json_rep = run_document_audit(
+            front_image_input=Image.new("RGB", (800, 500), (230, 230, 230)), back_image_input=None,
+            doc_type="DNI 4.0 / 3.0", front_doc_number="", front_expiry_date="", front_birth_date="",
+            front_surname="", mrz_text="\n".join(lines),
+        )
+        report = json.loads(json_rep)
+        surname_check = next(c for c in report["checklist"] if c["control"].endswith("CROSS_CHECK_SURNAME"))
+        assert surname_check["estado"] == "FALLO"
+        assert report["risk_level"] == RiskLevel.CRITICAL.value
+
+    def test_extra_ocr_words_after_full_surnames_do_not_fail(self):
+        mrz = validate_mrz_td1(generate_synthetic_mrz_td1(surname="GARCIA MUNOZ"))
+        report = cross_verify_front_with_mrz(DocumentFrontData(surname="GARCÍA MUÑOZ CARMEN"), mrz)
+        assert report.findings[0].passed is True
+
+
 class TestFrontDateAssignment:
     """Las fechas del anverso se asignan por valor, no por el orden de lectura del OCR."""
 

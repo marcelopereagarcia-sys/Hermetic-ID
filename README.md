@@ -3,7 +3,7 @@
 [![Python 3.10 | 3.11](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Privacy: Local](https://img.shields.io/badge/Privacy-Local%20(RGPD)-green.svg)](#-privacidad-y-compliance-rgpd)
-[![Tests: Passing](https://img.shields.io/badge/Tests-83%2F83%20Passed-brightgreen.svg)](#-suite-de-pruebas-automatizadas)
+[![CI](https://github.com/marcelopereagarcia-sys/Hermetic-ID/actions/workflows/ci.yml/badge.svg)](https://github.com/marcelopereagarcia-sys/Hermetic-ID/actions/workflows/ci.yml)
 [![Status: Beta](https://img.shields.io/badge/Status-Beta-orange.svg)](CHANGELOG.md)
 
 Herramienta de código abierto para la **detección de inconsistencias** en documentos de identidad españoles y europeos (DNI 3.0/4.0, NIE, TIE y Pasaportes ICAO Doc 9303 TD1 / TD3).
@@ -98,7 +98,7 @@ Los controles heurísticos nunca marcan un documento en rojo por sí solos: sus 
 - **Número de documento**: igualdad exacta con el DNI/NIE de la MRZ (o con el número de pasaporte en TD3).
 - **Número de soporte**: el leído en el anverso frente al campo de documento de la MRZ.
 - **Fechas** de nacimiento y caducidad.
-- **Apellidos**: normalizados a la transliteración ICAO (`GARCÍA MUÑOZ` ≡ `GARCIA<MUNOZ`) y comparados por palabras. Si el anverso solo aporta el primer apellido, el control pasa pero se marca como **coincidencia parcial**.
+- **Apellidos**: extraídos de las etiquetas del anverso (o introducidos a mano), normalizados a la transliteración ICAO (`GARCÍA MUÑOZ` ≡ `GARCIA<MUNOZ`) y comparados por palabras. Si el anverso solo aporta el primer apellido, el control pasa pero se marca como **coincidencia parcial**.
 - Solo se cruzan datos que proceden del anverso (manuales u OCR). Si solo se sube el reverso, no hay cruce.
 
 ### 5. Trazabilidad de las correcciones OCR
@@ -188,8 +188,8 @@ curl -X POST http://127.0.0.1:8000/api/v1/audit/mrz \
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/hermetic-id.git
-cd hermetic-id
+git clone https://github.com/marcelopereagarcia-sys/Hermetic-ID.git
+cd Hermetic-ID
 
 # 2. Crear y activar entorno virtual
 python -m venv .venv
@@ -231,7 +231,7 @@ HERMETIC_HOST_PORT=7870 docker compose -f docker/docker-compose.yml up --build
 
 ## 🧪 Suite de Pruebas Automatizadas
 
-El repositorio cuenta con **83 pruebas unitarias y de integración**, todas con datos sintéticos marcados como `SPECIMEN`:
+El repositorio cuenta con **91 pruebas unitarias y de integración**, todas con datos sintéticos marcados como `SPECIMEN`:
 
 ```bash
 pytest -v tests/
@@ -239,14 +239,16 @@ pytest -v tests/
 
 Salida esperada:
 ```text
-tests/test_algorithms.py ..................                              [ 22%]
-tests/test_api.py ...........                                            [ 36%]
-tests/test_forensics.py ....                                             [ 41%]
-tests/test_ocr_crosscheck.py .......                                     [ 50%]
-tests/test_preprocessor.py .......                                       [ 58%]
-                  [ 90%]
+tests/test_algorithms.py ..................                              [ 19%]
+tests/test_api.py ...........                                            [ 31%]
+tests/test_forensics.py ....                                             [ 36%]
+tests/test_ocr_crosscheck.py .......                                     [ 43%]
+tests/test_preprocessor.py .......                                       [ 51%]
+tests/test_regressions.py ....................................           [ 91%]
 tests/test_reporting_and_ui.py ........                                  [100%]
-============================= 83 passed =============================
+============================= 91 passed =============================
+
+Cobertura: 87 % (el CI exige un mínimo del 75 %).
 ```
 
 `tests/test_regressions.py` reproduce los fallos corregidos en la revisión del 2026-10-06 (ver [CHANGELOG.md](CHANGELOG.md)) usando la estructura real de la MRZ española y un OCR simulado, para que no vuelvan a aparecer.
@@ -259,7 +261,7 @@ Integración Continua configurada en [`.github/workflows/ci.yml`](.github/workfl
 
 - **Umbrales heurísticos sin calibrar**: los umbrales del ELA y del borde de foto se ajustaron con muy pocas imágenes. Hasta medirlos contra un conjunto de imágenes etiquetado, son indicios para revisión manual.
 - **Recuadro de la foto estimado**: el control de borde asume que la imagen es un recorte ajustado del documento (la foto se busca en proporciones fijas). En una foto con fondo, el recuadro no coincidirá.
-- **OCR del anverso**: la extracción de nombre y apellidos del anverso se basa en etiquetas de texto y está probada sobre muestras sintéticas. Conviene revisar los campos extraídos o introducirlos manualmente.
+- **OCR del anverso**: apellidos y nombre se extraen de las etiquetas impresas (`PRIMER/SEGUNDO APELLIDO`, `APELLIDOS / SURNAMES`, `NOMBRE / NAME`). Está probado con lecturas OCR simuladas; si un campo no se extrae bien, introdúcelo manualmente en "Parámetros Manuales".
 - **ELA y formato de origen**: el ELA solo tiene sentido sobre imágenes JPEG. En PNG o capturas de pantalla el resultado no es interpretable.
 - **Sin verificación del chip**: la verificación criptográfica por NFC está en el [roadmap](#-roadmap).
 
@@ -268,7 +270,7 @@ Integración Continua configurada en [`.github/workflows/ci.yml`](.github/workfl
 ## 🗺️ Roadmap
 
 - [ ] **Medición**: conjunto de imágenes etiquetado (auténticas y manipuladas; móvil, escáner y capturas) para calibrar el ELA y el borde de foto y publicar tasas reales de detección y falsos positivos.
-- [ ] **OCR del anverso**: extraer apellidos y nombre de las etiquetas reales del DNI 4.0 y la TIE, para cruzar también el titular.
+- [ ] **OCR del anverso con documentos reales**: validar la extracción de apellidos y nombre con anversos reales de DNI 3.0, DNI 4.0 y TIE.
 - [ ] **Recuadro de la foto**: localizarlo detectando el documento en lugar de usar proporciones fijas.
 - [ ] **ELA según formato**: avisar o desactivarlo cuando la imagen de origen no es JPEG.
 - [ ] **Verificación por chip NFC**: lectura local del chip del DNI 3.0/4.0 vía PC/SC (PACE con CAN) y validación de la firma de la Policía Nacional.

@@ -4,6 +4,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ---
 
+## [1.2.0] — 2026-10-06 · Cruce de apellidos con documentos reales
+
+### Añadido
+- **Extracción de apellidos y nombre del anverso real** a partir de sus etiquetas impresas: `PRIMER APELLIDO` / `SEGUNDO APELLIDO` (DNI 3.0) y `APELLIDOS / SURNAMES`, `NOMBRE / NAME` (DNI 4.0 y TIE), con el valor en la línea siguiente o pegado a la etiqueta. Las líneas con dígitos o con otras etiquetas cortan el valor, para no arrastrar fechas, sexo ni nacionalidad.
+- Hasta ahora solo se reconocía la etiqueta `TITULAR:` de las muestras sintéticas: con una TIE real el apellido no se cruzaba, así que **un cambio de apellido en el anverso no se detectaba**. Ahora sí (`CROSS_CHECK_SURNAME` en rojo).
+
+### Cambiado
+- Cruce de apellidos: si el anverso empieza por los apellidos completos de la MRZ y el OCR añade texto detrás (por ejemplo, el nombre), ya no se marca como discrepancia.
+- README: badge de CI real en lugar del recuento fijo de tests; URL de clonado del repositorio público; titular de la licencia.
+
+**Resultado:** 91/91 tests (8 nuevos) y cobertura del 87 %.
+
+---
+
 ## [1.1.0] — 2026-10-06 · Hermetic-ID
 
 ### Cambiado
@@ -94,7 +108,7 @@ Revisión completa del código hecha con Claude Code. Los 55 tests existentes pa
 
 - **Calibrar ELA y borde de foto** con un conjunto de imágenes etiquetado (auténticas y manipuladas, fotos de móvil y escaneos) y publicar las tasas medidas.
 - **Recuadro de la foto**: localizarlo detectando el documento en lugar de usar proporciones fijas.
-- **OCR del anverso**: extraer apellidos y nombre de las etiquetas reales del DNI 4.0 (`APELLIDOS` / `NOMBRE` en líneas separadas). Comprobado con una TIE real: sin esto no se cruza el apellido.
+- **OCR del anverso con documentos reales**: la extracción por etiquetas (1.2.0) está probada con lecturas OCR simuladas; falta validarla con anversos reales.
 - **ELA según el formato de origen**: avisar o desactivarlo cuando la imagen no es JPEG.
 - **Fixtures fuera de `tests/`**: la interfaz importa el generador de muestras desde `tests.fixtures`, y el código de producción no debería depender de `tests/`.
 - **Purga al arrancar compartida**: dos instancias de la interfaz abiertas a la vez comparten la carpeta de subidas, así que arrancar una borra las subidas de la otra. Si hace falta, usar un `GRADIO_TEMP_DIR` distinto por instancia.

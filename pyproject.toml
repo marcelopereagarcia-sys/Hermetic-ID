@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hermetic-id"
-version = "1.1.0"
+version = "1.2.0"
 description = "Detección local de inconsistencias en documentos de identidad españoles (DNI 3.0/4.0, NIE, TIE, Pasaportes ICAO 9303)"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-    { name = "Hermetic-ID contributors" }
+    { name = "Marcelo Perea García" }
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -38,6 +38,11 @@ dependencies = [
     "python-multipart>=0.0.9",
     "httpx>=0.26.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/marcelopereagarcia-sys/Hermetic-ID"
+Issues = "https://github.com/marcelopereagarcia-sys/Hermetic-ID/issues"
+Changelog = "https://github.com/marcelopereagarcia-sys/Hermetic-ID/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
