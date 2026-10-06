@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   hermetic-id:
     build:
@@ -7,9 +5,10 @@ services:
       dockerfile: docker/Dockerfile
     container_name: hermetic-id
     restart: unless-stopped
-    # COMPLIANCE: Binding estricto a 127.0.0.1 (evita exposición fuera del host)
+    # COMPLIANCE: Binding estricto a 127.0.0.1 (evita exposición fuera del host).
+    # HERMETIC_HOST_PORT permite cambiar el puerto del host si el 7860 está ocupado.
     ports:
-      - "127.0.0.1:7860:7860"
+      - "127.0.0.1:${HERMETIC_HOST_PORT:-7860}:7860"
     environment:
       - GRADIO_ANALYTICS_ENABLED=False
       - PYTHONUNBUFFERED=1

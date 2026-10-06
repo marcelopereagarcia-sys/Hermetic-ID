@@ -15,6 +15,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 - Nueva carpeta local `private/` (ignorada) para documentos reales, notas y borradores. Los informes exportados (`informes/`, `reports/`, `*_informe*.json`) y los archivos `.env` también se ignoran.
 - La documentación interna de desarrollo (plan de fases y guion de difusión) sale del repositorio público; el roadmap queda resumido en el README.
 
+### Docker (verificado)
+- Imagen construida y probada: arranca en ~6 s, responde en `127.0.0.1` y **no** es accesible desde la IP de red local; OCR operativo sin descargas en ejecución; usuario sin privilegios; dentro de la imagen no hay `.venv`, `.git`, `private/` ni imágenes.
+- `docker-compose.yml`: nuevo `HERMETIC_HOST_PORT` para usar otro puerto del host si el 7860 está ocupado. Eliminada la clave `version`, obsoleta en Docker Compose v2.
+
 ---
 
 ## [1.0.1] — 2026-10-06 · Revisión de correctitud, privacidad y despliegue
@@ -88,7 +92,6 @@ Revisión completa del código hecha con Claude Code. Los 55 tests existentes pa
 
 ### ⏳ Pendiente (no resuelto en esta revisión)
 
-- **Construir y probar la imagen Docker**: los cambios del `Dockerfile` no se han podido verificar porque Docker Desktop no estaba arrancado.
 - **Calibrar ELA y borde de foto** con un conjunto de imágenes etiquetado (auténticas y manipuladas, fotos de móvil y escaneos) y publicar las tasas medidas.
 - **Recuadro de la foto**: localizarlo detectando el documento en lugar de usar proporciones fijas.
 - **OCR del anverso**: extraer apellidos y nombre de las etiquetas reales del DNI 4.0 (`APELLIDOS` / `NOMBRE` en líneas separadas). Comprobado con una TIE real: sin esto no se cruza el apellido.

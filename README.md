@@ -215,9 +215,16 @@ Acceso al portal web local: `http://127.0.0.1:7860`.
 docker compose -f docker/docker-compose.yml up --build
 ```
 
+Acceso: `http://127.0.0.1:7860`. Si ese puerto está ocupado (por ejemplo, por la app ejecutándose en local), elige otro con `HERMETIC_HOST_PORT`:
+
+```bash
+HERMETIC_HOST_PORT=7870 docker compose -f docker/docker-compose.yml up --build
+```
+
 - Dentro del contenedor la aplicación escucha en `0.0.0.0` (`HERMETIC_HOST`); si escuchara en `127.0.0.1`, el mapeo de puertos no llegaría a ella.
 - La exposición real la limita `docker-compose.yml`, que publica el puerto **solo en el loopback del host** (`127.0.0.1:7860:7860`).
-- La imagen instala PyTorch solo CPU, incluye los modelos de OCR y arranca con `HERMETIC_OFFLINE_MODE=true`.
+- La imagen (≈3 GB) instala PyTorch solo CPU, incluye los modelos de OCR y arranca con `HERMETIC_OFFLINE_MODE=true`: en ejecución no descarga nada.
+- Se ejecuta con un usuario sin privilegios (`appuser`).
 - `.dockerignore` excluye `.venv`, `.git` y cualquier imagen o PDF local, para que ningún documento de prueba acabe dentro de la imagen.
 
 ---
