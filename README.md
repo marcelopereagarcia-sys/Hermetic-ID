@@ -263,7 +263,7 @@ Integración Continua configurada en [`.github/workflows/ci.yml`](.github/workfl
 - **Recuadro de la foto estimado**: el control de borde asume que la imagen es un recorte ajustado del documento (la foto se busca en proporciones fijas). En una foto con fondo, el recuadro no coincidirá.
 - **OCR del anverso**: apellidos y nombre se extraen de las etiquetas impresas (`PRIMER/SEGUNDO APELLIDO`, `APELLIDOS / SURNAMES`, `NOMBRE / NAME`). Está probado con lecturas OCR simuladas; si un campo no se extrae bien, introdúcelo manualmente en "Parámetros Manuales".
 - **ELA y formato de origen**: el ELA solo tiene sentido sobre imágenes JPEG. En PNG o capturas de pantalla el resultado no es interpretable.
-- **Sin verificación del chip**: la verificación criptográfica por NFC está en el [roadmap](#-roadmap).
+- **Sin verificación del chip**: la herramienta no lee el chip NFC del documento, así que no valida su firma criptográfica. Queda fuera del alcance del proyecto.
 
 ---
 
@@ -273,7 +273,6 @@ Integración Continua configurada en [`.github/workflows/ci.yml`](.github/workfl
 - [ ] **OCR del anverso con documentos reales**: validar la extracción de apellidos y nombre con anversos reales de DNI 3.0, DNI 4.0 y TIE.
 - [ ] **Recuadro de la foto**: localizarlo detectando el documento en lugar de usar proporciones fijas.
 - [ ] **ELA según formato**: avisar o desactivarlo cuando la imagen de origen no es JPEG.
-- [ ] **Verificación por chip NFC**: lectura local del chip del DNI 3.0/4.0 vía PC/SC (PACE con CAN) y validación de la firma de la Policía Nacional.
 
 Historial de versiones en [CHANGELOG.md](CHANGELOG.md).
 
