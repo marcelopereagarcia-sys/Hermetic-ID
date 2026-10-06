@@ -50,6 +50,10 @@ private/
 *.raw
 *.dng
 
+# Única excepción: la demo grabada con muestras sintéticas SPECIMEN (nombres exactos, nunca comodines)
+!docs/media/hermetic-id-demo.gif
+!docs/media/hermetic-id-demo.mp4
+
 # Informes exportados por la herramienta (contienen nombre, número y fechas del titular)
 informes/
 reports/

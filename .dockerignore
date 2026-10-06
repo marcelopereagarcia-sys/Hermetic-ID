@@ -39,3 +39,7 @@ tmp/
 temp/
 scratch/
 *.log
+
+# Documentación y vídeos de demo: no hacen falta dentro del contenedor
+docs/
+*.mp4

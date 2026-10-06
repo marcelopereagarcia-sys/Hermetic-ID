@@ -10,6 +10,12 @@ Herramienta de código abierto para la **detección de inconsistencias** en docu
 
 Diseñada bajo el principio de **Privacy-by-Design**: se ejecuta **en local**, sin telemetría y sin enviar imágenes a servicios externos. El análisis se hace en memoria; las únicas escrituras en disco son las subidas temporales de la interfaz Gradio, confinadas en una carpeta dedicada que se purga automáticamente (ver [Privacidad](#-privacidad-y-compliance-rgpd)).
 
+## 🎬 Demo
+
+![Demo de Hermetic-ID: muestra válida en verde, muestra manipulada detectada por el cruce con la MRZ y documento caducado](docs/media/hermetic-id-demo.gif)
+
+▶️ [Vídeo completo en alta calidad (69 s, MP4)](docs/media/hermetic-id-demo.mp4) · Grabado solo con muestras sintéticas `SPECIMEN`: no aparece ningún dato real.
+
 ---
 
 > ## ⚠️ AVISO LEGAL Y DESCARGO DE RESPONSABILIDAD
